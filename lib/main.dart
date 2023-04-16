@@ -102,7 +102,7 @@ class _DietFormState extends State<DietForm> {
                       ),
                       TextFormField(
                         controller: _nameController,
-                        keyboardType: TextInputType.number,
+                        keyboardType: TextInputType.text,
                         decoration: InputDecoration(
                           labelText: 'Name',
                           hintText: 'Enter your name',
