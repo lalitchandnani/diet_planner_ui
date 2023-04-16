@@ -1,6 +1,6 @@
 # diet_planner
 
-A new Flutter project.
+A Simple AI based Diet recommendation App.
 
 ## Getting Started
 
