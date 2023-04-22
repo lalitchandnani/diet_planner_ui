@@ -1,7 +1,31 @@
+import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/material.dart';
 import 'api.dart';
 
-void main() {
+void main() async {
+  await dotenv.load(fileName: ".env");
+  // Initialize Firebase
+  WidgetsFlutterBinding.ensureInitialized();
+  // Read Firebase credentials from the JSON file
+  String credentialsPath = dotenv.env['FIREBASE_CREDENTIALS_FILE']!;
+  String content = await rootBundle.loadString('$credentialsPath');
+  Map<String, dynamic> credentials = json.decode(content);
+  await Firebase.initializeApp(
+    options: FirebaseOptions(
+      apiKey: credentials['apiKey'],
+      authDomain: credentials['authDomain'],
+      projectId: credentials['projectId'],
+      storageBucket: credentials['storageBucket'],
+      messagingSenderId: credentials['messagingSenderId'],
+      appId: credentials['appId'],
+      measurementId: credentials['measurementId'],
+    ),
+  );
   runApp(MyApp());
 }
 
@@ -48,10 +72,27 @@ class _DietFormState extends State<DietForm> {
       final age = int.parse(_ageController.text.trim());
       final weight = int.parse(_weightController.text.trim());
       final height = int.parse(_heightController.text.trim());
+      final FirebaseAnalytics analytics = FirebaseAnalytics.instance;
+
+      // Set user properties
+      await analytics.setUserProperty(
+        name: 'name',
+        value: name,
+      );
+
+      //Track firebase event
+      await analytics.logEvent(
+        name: 'diet_query_filled',
+        parameters: <String, dynamic>{
+          'age': age,
+          'weight': weight,
+          'height': height,
+        },
+      );
 
       Api api = Api();
       final data = await api.fetchDietRecommendations(name, age, weight, height);
-      
+
       // Reset the form
       _formKey.currentState?.reset();
       _nameController.clear();
